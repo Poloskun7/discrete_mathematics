@@ -1,31 +1,32 @@
 import 'dart:io';
 import 'dart:collection';
 
-class Graph {
-  final List<List<int>> matrix;
+enum Colors {
+  black,
+  white
+}
 
-  Graph(this.matrix);
+  //Алгоритм BFS
+  List<int> bfs(startVertex, List<List<int>> list, List<Colors> used, Queue<int> queue, List<int> result) {
+    used[startVertex] = Colors.black; //Помечаем текущую вершину в черный цвет
+    result.add(startVertex + 1);
+    queue.add(startVertex); //Добавляем текущую вершину в очередь
 
-  List<int> bfs(int startVertex) {
-    final List<int> visited = [];
-    final queue = Queue<int>();
-
-    visited.add(startVertex);
-    queue.add(startVertex);
-
+    //Пока очередь не пуста
     while (queue.isNotEmpty) {
-      final currentVertex = queue.removeFirst();
+      final currentVertex = queue.removeFirst(); //Удаляем из очереди первую вершину
 
-      for (int neighbor = 0; neighbor < matrix[currentVertex].length; neighbor++) {
-        if (matrix[currentVertex][neighbor] == 1 && !visited.contains(neighbor)) {
-          visited.add(neighbor);
-          queue.add(neighbor);
+      //Перебираем смежные вершины белого цвета
+      for (int neighbor = 0; neighbor < list[currentVertex].length; neighbor++) {
+        if (list[currentVertex][neighbor] == 1 && used[neighbor] != Colors.black) {
+          used[neighbor] = Colors.black; //Помечаем вершину в черный цвет
+          result.add(neighbor + 1);
+          queue.add(neighbor); //Добавляем вершину в очередь
         }
       }
     }
-    return visited;
+    return result;
   }
-}
 
 Future<List<List<int>>> readGraphFromFile(String filename) async {
   final file = File(filename);
@@ -41,9 +42,14 @@ Future<List<List<int>>> readGraphFromFile(String filename) async {
 }
 
 void main() async {
-  final matrix = await readGraphFromFile('bin/file');
-  final graph = Graph(matrix);
+  final list = await readGraphFromFile('bin/file');
 
-  print('BFS starting from vertex 0:');
-  print('\n${graph.bfs(0)}');
+  final List<Colors> used = List.filled(list.length, Colors.white);
+  final queue = Queue<int>();
+  List<int> result = [];
+
+  int startVertex = 3;
+
+  print('\nBFS starting from vertex $startVertex:');
+  print('\n${bfs(startVertex - 1, list, used, queue, result)}');
 }

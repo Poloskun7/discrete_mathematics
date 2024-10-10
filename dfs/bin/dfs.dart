@@ -1,32 +1,31 @@
 import 'dart:io';
 
-class Graph {
-  List<List<int>> matrix;
+enum Colors {
+  white, 
+  gray,
+  black
+}
 
-  Graph(this.matrix);
-
-  Set<int> dfs(int start) {
-    Set<int> visited = {};
-    _dfsRecursive(start, visited);
-    return visited;
-  }
-
-  void _dfsRecursive(int vertex, Set<int> visited) {
-    visited.add(vertex);
-
-    for (int neighbor = 0; neighbor < matrix[vertex].length; neighbor++) {
-      if (matrix[vertex][neighbor] == 1 && !visited.contains(neighbor)) {
-        _dfsRecursive(neighbor, visited);
-      }
+//Алгоритм DFS
+List<int> dfs(int vertex, List<List<int>> list, List<Colors> used, List<int> result) {
+  used[vertex] = Colors.gray; //Помечаем текущую вершину в серый цвет
+  result.add(vertex + 1); 
+  
+  //Перебираем все смежные вершины белого цвета
+  for (int neighbor = 0; neighbor < list.length; neighbor++) { 
+    if (list[vertex][neighbor] == 1 && used[neighbor] == Colors.white) {
+      dfs(neighbor, list, used, result); //Вызываем DFS
     }
   }
+  
+  used[vertex] = Colors.black; //Помечаем текущую вершину в черный цвет 
+  return result;
 }
 
 Future<List<List<int>>> readGraphFromFile(String filename) async {
   var file = File(filename);
   List<List<int>> matrix = [];
 
-  // Чтение файла построчно
   var lines = await file.readAsLines();
   for (var line in lines) {
     var row = line.split(' ').map(int.parse).toList();
@@ -36,9 +35,12 @@ Future<List<List<int>>> readGraphFromFile(String filename) async {
 }
 
 Future<void> main() async {
-  final matrix = await readGraphFromFile('bin/file');
-  final graph = Graph(matrix);
+  final list = await readGraphFromFile('bin/file');
+  List<Colors> used = List.filled(list.length, Colors.white);
+  List<int> result = [];
+  
+  final startVertex = 2;
 
-  print("DFS starting from vertex 0:");
-  print('\n${graph.dfs(0)}');
+  print('\nDFS starting from vertex $startVertex:');
+  print('\n${dfs(startVertex - 1, list, used, result)}');
 }
