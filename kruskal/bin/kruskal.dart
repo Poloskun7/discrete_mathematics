@@ -3,104 +3,62 @@ import 'dart:convert';
 
 // Класс для представления ребра
 class Edge {
-  int source, destination, weight;
-  Edge(this.source, this.destination, this.weight);
+  int first, second, weight;
+  Edge(this.first, this.second, this.weight);
 }
 
-// Класс для представления графа с алгоритмом Краскала
-class Graph {
-  int vertices;
-  List<Edge> edges = [];
 
-  Graph(this.vertices);
 
-  // Метод для добавления ребра в список рёбер
-  void addEdge(int u, int v, int w) {
-    edges.add(Edge(u, v, w));
+  // Алгоритм Краскала
+  List<Edge> kruskal(int startVertex, List<List<Edge>> list) {
+    List<Edge> mst = <Edge>[];
+
+    return mst;
   }
+   
 
-  // Метод для нахождения представителя множества (поиск сжатия путей)
-  int find(List<int> parent, int i) {
-    if (parent[i] == i) {
-      return i;
-    }
-    return parent[i] = find(parent, parent[i]);
+// Функция чтения матрицы смежности из файла
+Future<List<List<int>>> readGraphFromFile(String filename) async {
+  final file = File(filename);
+  List<String> lines = await file.readAsLines();
+  List<List<int>> matrix = [];
+
+  for (var line in lines) {
+    List<int> row = line.split(' ').map(int.parse).toList();
+    matrix.add(row);
   }
+  return matrix;
+}
 
-  // Метод для объединения двух множеств (объединение по рангу)
-  void union(List<int> parent, List<int> rank, int x, int y) {
-    int xroot = find(parent, x);
-    int yroot = find(parent, y);
+// Преобразование матрицы в список смежности
+List<List<Edge>> convertMatrixToAdjacencyList(List<List<int>> matrix) {
+  List<List<Edge>> adjacencyList = [];
 
-    if (rank[xroot] < rank[yroot]) {
-      parent[xroot] = yroot;
-    } else if (rank[xroot] > rank[yroot]) {
-      parent[yroot] = xroot;
-    } else {
-      parent[yroot] = xroot;
-      rank[xroot]++;
-    }
-  }
-
-  // Реализация алгоритма Краскала
-  void kruskalMST() {
-    List<Edge> result = [];  // Список для хранения результата (MST)
-
-    // Сортировка рёбер по возрастанию весов
-    edges.sort((a, b) => a.weight.compareTo(b.weight));
-
-    // Инициализация родительских и ранговых массивов
-    List<int> parent = List<int>.generate(vertices, (i) => i);
-    List<int> rank = List<int>.filled(vertices, 0);
-
-    int e = 0;  // Количество рёбер в MST
-    int i = 0;  // Индекс для сортированных рёбер
-
-    // Пока MST не содержит всех вершин
-    while (e < vertices - 1) {
-      Edge nextEdge = edges[i++];
-
-      int x = find(parent, nextEdge.source);
-      int y = find(parent, nextEdge.destination);
-
-      // Если включение этого ребра не образует цикл
-      if (x != y) {
-        result.add(nextEdge);
-        union(parent, rank, x, y);
-        e++;
+  for (int i = 0; i < matrix.length; i++) {
+    List<Edge> edges = [];
+    for (int j = 0; j < matrix[i].length; j++) {
+      if (matrix[i][j] != 0) {
+        edges.add(Edge(j, matrix[i][j]));
       }
     }
-
-    // Вывод результата
-    print("Рёбра в минимальном остовном дереве:");
-    for (var edge in result) {
-      print("${edge.source} -- ${edge.destination} == ${edge.weight}");
-    }
+    adjacencyList.add(edges);
   }
+  return adjacencyList;
 }
 
 void main() async {
-  // Чтение файла и создание матрицы смежности
-  List<List<int>> adjMatrix = [];
-  final file = File('bin/file');
-  List<String> lines = await file.readAsLines(encoding: utf8);
+  List<List<int>> matrix = await readGraphFromFile('bin/file');
+  List<List<Edge>> list = convertMatrixToAdjacencyList(matrix);
 
-  for (var line in lines) {
-    adjMatrix.add(line.split(' ').map(int.parse).toList());
+  int startVertex = 0;
+
+  List<Edge> mst = kruskal(startVertex, list);
+
+  print("\nМинимальное остовное дерево из вершины $startVertex с помощью алгоритма Краскала");
+  int sum = 0;
+  for (var edge in mst) {
+    sum += edge.weight;
+    print('Ребро: ${edge.first + 1} - ${edge.second + 1} Вес: ${edge.weight}');
   }
-
-  int vertices = adjMatrix.length;
-  Graph graph = Graph(vertices);
-
-  // Преобразование матрицы смежности в список рёбер
-  for (int i = 0; i < vertices; i++) {
-    for (int j = i + 1; j < vertices; j++) {
-      if (adjMatrix[i][j] != 0) {
-        graph.addEdge(i, j, adjMatrix[i][j]);
-      }
-    }
-  }
-
-  // Выполнение алгоритма Краскала
-  graph.kruskalMST();
+  print("Минимальная сумма : $sum");
 }
