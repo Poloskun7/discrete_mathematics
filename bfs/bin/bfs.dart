@@ -48,7 +48,7 @@ void main() async {
   final queue = Queue<int>();
   List<int> result = [];
 
-  int startVertex = 3;
+  int startVertex = 1;
 
   print('\nBFS starting from vertex $startVertex:');
   print('\n${bfs(startVertex - 1, list, used, queue, result)}');
